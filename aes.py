@@ -18,6 +18,7 @@ Sbox = [
 ]
 
 key = [0x10, 0x50, 0xa9, 0x25, 0x15, 0xd6, 0x55, 0x55, 0xd4, 0x50, 0xeb, 0x45, 0x68, 0x21, 0xe9, 0x81]
+message = [0x14,0x15,0x16,0x17,0x10,0x11,0x12,0x13,0x18,0x19,0x1A,0x1B,0x1C,0x1D,0x1F,0x20]
 
 intKey = []
 for i in key:
@@ -47,7 +48,80 @@ def next_key(keys, round):
         xor_with = keys[-1]
     return keys
 
-print(splitedList)
-for i in range(10):
-    next_key(splitedList, i)
-print(splitedList)
+def key_expansion(list):
+    for i in range(10):
+        next_key(list, i)
+    keys = split_list(splitedList)
+    return keys
+
+keys = key_expansion(splitedList)
+
+
+def multiply_by_2(v):
+    s = v << 1
+    s &= 0xff
+    if (v & 128) != 0:
+        s = s ^ 0x1b
+    return s
+
+
+def multiply_by_3(v):
+    return multiply_by_2(v) ^ v
+
+def mix_column(column):
+    r = [
+        multiply_by_2(column[0]) ^ multiply_by_3(
+            column[1]) ^ column[2] ^ column[3],
+        multiply_by_2(column[1]) ^ multiply_by_3(
+            column[2]) ^ column[3] ^ column[0],
+        multiply_by_2(column[2]) ^ multiply_by_3(
+            column[3]) ^ column[0] ^ column[1],
+        multiply_by_2(column[3]) ^ multiply_by_3(
+            column[0]) ^ column[1] ^ column[2],
+    ]
+    return r
+
+def mix_columns(grid):
+    new_grid = [[], [], [], []]
+    for i in range(4):
+        col = [grid[i][j] for j in range(4)]
+        col = mix_column(col)
+        for i in range(4):
+            new_grid[i].append(col[i])
+    _new_grid = []
+    for i in  range(4):
+        _new_grid.append([new_grid[j][i] for j in range(4)])
+    return _new_grid
+
+def aes_round(message, key, round):
+    words = []
+    for i in range(4):
+        word = message[i]
+        for k in range(4):
+            word[k] = Sbox[word[k]]
+        for k in range(i):
+            word = word[1:] + [word[0]]
+        words.append(word)
+    first_step = []
+    for i in range(4):
+        for j in range(4):
+            first_step.append(words[(j + i)% 4][-i])
+    if (round == 10):
+        mixed = split_list(first_step)
+    else:
+        mixed = mix_columns(split_list(first_step))
+    words = []
+    for i in range(4):       
+        word = [mixed[i][j] ^ key[i][j] for j in range(4)]
+        words.append(word)
+    return words
+
+split_message = split_list(message)
+xored_message = []
+for i in range(4):
+    xored_message.append([split_message[i][j] ^ keys[0][i][j] for j in range(4)])
+
+round_res = xored_message
+for round in range(10):
+    round_res = aes_round(round_res, keys[round + 1], round + 1)
+    print(round_res)
