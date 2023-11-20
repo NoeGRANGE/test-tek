@@ -1,3 +1,5 @@
+import binascii
+
 Sbox = [
     0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
     0xCA, 0x82, 0xC9, 0x7D, 0xFA, 0x59, 0x47, 0xF0, 0xAD, 0xD4, 0xA2, 0xAF, 0x9C, 0xA4, 0x72, 0xC0,
@@ -17,19 +19,8 @@ Sbox = [
     0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68, 0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16
 ]
 
-key = [0x10, 0x50, 0xa9, 0x25, 0x15, 0xd6, 0x55, 0x55, 0xd4, 0x50, 0xeb, 0x45, 0x68, 0x21, 0xe9, 0x81]
-message = [0x14,0x15,0x16,0x17,0x10,0x11,0x12,0x13,0x18,0x19,0x1A,0x1B,0x1C,0x1D,0x1F,0x20]
-
-intKey = []
-for i in key:
-    intKey.append(int(i))
-print(intKey)
-
-
 def split_list(lst):
     return [lst[i:i + 4] for i in range(0, len(lst), 4)]
-
-splitedList = split_list(intKey)
 
 
 rcon = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36]
@@ -51,10 +42,8 @@ def next_key(keys, round):
 def key_expansion(list):
     for i in range(10):
         next_key(list, i)
-    keys = split_list(splitedList)
+    keys = split_list(list)
     return keys
-
-keys = key_expansion(splitedList)
 
 
 def multiply_by_2(v):
@@ -116,12 +105,22 @@ def aes_round(message, key, round):
         words.append(word)
     return words
 
-split_message = split_list(message)
-xored_message = []
-for i in range(4):
-    xored_message.append([split_message[i][j] ^ keys[0][i][j] for j in range(4)])
+def aes_encrypt(message, key):
+    byte_message = list(bytes.fromhex(message))
+    byte_key = list(bytes.fromhex(key))
+    splited_byte_key = split_list(byte_key)
+    keys = key_expansion(splited_byte_key)
+    split_message = split_list(byte_message)
+    xored_message = []
+    for i in range(4):
+        xored_message.append([split_message[i][j] ^ keys[0][i][j] for j in range(4)])
 
-round_res = xored_message
-for round in range(10):
-    round_res = aes_round(round_res, keys[round + 1], round + 1)
-    print(round_res)
+    round_res = xored_message
+    for round in range(10):
+        round_res = aes_round(round_res, keys[round + 1], round + 1)
+    flat_list = []
+    for sublist in round_res:
+        for item in sublist:
+            flat_list.append(item)
+    byte_array_le = bytes(flat_list)
+    print(byte_array_le.hex())
