@@ -22,7 +22,12 @@ def main(argv):
                     sys.exit(84)
             else:
                 key = argv[2]
-            aes.aes_encrypt(message, key)
+            if (argv[1] == "-c"):
+                aes.aes_encrypt(message, key)
+            elif (argv[1] == "-d"):
+                aes.aes_decrypt(message, key)
+            else:
+                sys.exit(84)
     except:
         sys.exit(84)
     sys.exit(0)
