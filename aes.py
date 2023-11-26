@@ -126,6 +126,8 @@ def aes_encrypt_round(message, key, round):
 
 def aes_encrypt(message, key):
     byte_message = list(bytes.fromhex(message))
+    if (len(byte_message) != 16):
+        byte_message = [0] * (16 - len(byte_message)) + byte_message
     byte_key = list(bytes.fromhex(key))
     splited_byte_key = split_list(byte_key)
     keys = key_expansion(splited_byte_key)
@@ -162,6 +164,8 @@ def aes_decrypt_round(message, key, round):
 
 def aes_decrypt(message, key):
     byte_message = list(bytes.fromhex(message))
+    if (len(byte_message) != 16):
+        byte_message = [0] * (16 - len(byte_message)) + byte_message
     byte_key = list(bytes.fromhex(key))
     splited_byte_key = split_list(byte_key)
     keys = key_expansion(splited_byte_key)
@@ -176,5 +180,4 @@ def aes_decrypt(message, key):
         for item in sublist:
             flat_list.append(item)
     byte_array_le = bytes(flat_list)
-    print(byte_array_le.hex())
-
+    print(byte_array_le.hex().lstrip('0'))
