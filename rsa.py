@@ -60,7 +60,7 @@ def crypt_rsa(message, key):
     _e, _n = key.split("-")
     e = reverse_into_dec(_e)
     n = reverse_into_dec(_n)
-    int_message = int(message, 16)
+    int_message = reverse_into_dec(message)
     pow_message = pow(int_message, e, n)
     crypted = reverse_by_2(format(pow_message, "x"))
     print(crypted)
