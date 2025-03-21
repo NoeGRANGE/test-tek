@@ -35,7 +35,7 @@ jobs:
         run: |
           # Replace ORG_NAME and REPO_B with your actual org/user and repo.
           # We embed the PAT in the URL. "MIRROR_TOKEN" is stored in Repo A's Secrets.
-          git remote add mirror https://${{ secrets.MIRROR_TOKEN }}:x-oauth-basic@github.com/EpitechPromo2026/B-CNA-500-LYN-5-1-cryptography-mattis.blanchet.git
+          git remote add mirror https://${{ secrets.MIRROR_TOKEN }}:x-oauth-basic@github.com/EpitechPromo2026/B-CNA-500-LYN-5-1-cryptography-mattis.blanchet
 
       - name: Push all branches/tags to Repo B
         if: ${{ github.event_name == 'push' }}  # Only push on 'push' event, skip on 'pull_request'
