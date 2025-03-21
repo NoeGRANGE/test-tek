@@ -1,0 +1,46 @@
+name: Mirror Repo A to Repo B
+
+on:
+  # Trigger on every push to all branches (including merges)
+  push:
+    branches:
+      - '**'
+  
+  # Optionally, also run on pull requests (e.g., to run checks during PRs).
+  # If your only interest is to mirror final commits, you can remove this section.
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  mirror:
+    # We only need to run this mirroring job on push,
+    # but if you also want checks for PRs, you can do a condition or separate jobs.
+    # For example, you can conditionally skip the push in the PR event. 
+    # We'll show how to do that later below.
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Repo A code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Grab full history so we can push tags/branches
+
+      - name: Set up Git user
+        run: |
+          git config user.name "Mirror Bot"
+          git config user.email "[email protected]"
+
+      - name: Add remote for Repo B
+        run: |
+          # Replace ORG_NAME and REPO_B with your actual org/user and repo.
+          # We embed the PAT in the URL. "MIRROR_TOKEN" is stored in Repo A's Secrets.
+          git remote add mirror https://${{ secrets.MIRROR_TOKEN }}:x-oauth-basic@github.com/EpitechPromo2026/B-CNA-500-LYN-5-1-cryptography-mattis.blanchet.git
+
+      - name: Push all branches/tags to Repo B
+        if: ${{ github.event_name == 'push' }}  # Only push on 'push' event, skip on 'pull_request'
+        run: |
+          # Mirror all branches
+          git push mirror --all
+          # Mirror all tags
+          git push mirror --tags
